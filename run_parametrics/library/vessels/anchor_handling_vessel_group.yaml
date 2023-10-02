@@ -1,0 +1,15 @@
+# For the purpose of code, this is 'one' vessel.  However, this is double the cost of the anchor handling vessel, and double the storage specs so that 2 are essentially 'going out at the same time' wihtout initializing 2 vessels.
+transport_specs:
+  max_waveheight: 3       # m
+  max_windspeed: 20       # m/s
+  transit_speed: 10       # km/h
+vessel_specs:
+  day_rate: 200000        # USD/day. This is 2x a typical vessel cost to represent cost of group of 2
+  overall_length: 300     # m. Again, 2x typical vessel spec
+  mobilization_days: 7    # days
+  mobilization_mult: 1   # Mobilization multiplier applied to 'day_rate'
+  name: Anchor Vessel Group
+storage_specs:
+  max_cargo: 1860          # t (5000 is 1 vessel)
+  max_deck_load: 1          # t/m^2 (8 is 1 vessel)
+  max_deck_space: 1860      # m^2 (1000 is  1 vessel)
