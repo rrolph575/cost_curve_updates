@@ -1,6 +1,6 @@
 turbine: 15MW_generic
 plant:
-  num_turbines: 1
+  num_turbines: 67
 mooring_system_design:
   num_lines: 3
 design_phases:

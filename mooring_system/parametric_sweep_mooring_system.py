@@ -75,7 +75,7 @@ y = f(x)
 print(f)
 
 fig, ax = plt.subplots()
-ax.plot(x, y/15000, '--', label = 'Cost curve')
+ax.plot(x, y/(67*15000), '--', label = 'Cost curve')
 #ax.plot(x, system_costs/15000, label = 'Costs') # plotting actual 'data'
 #ax.legend()
 ax.set_xlabel('Depth (m)')
