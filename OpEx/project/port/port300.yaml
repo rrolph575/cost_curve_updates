@@ -1,0 +1,12 @@
+name: port300
+tugboats: [tugboat1.yaml, tugboat2.yaml, ahv.yaml]
+max_operations: 2  # max number of turbines at the port at one time
+workday_start: 6
+workday_end: 18
+site_distance: 300  # will set the tugboats to this distance if not individually defined
+crew:
+  day_rate: 0
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0
+n_crews: 2  # maximum number of simultaneously operating crews to repair individual failures on a turbine
