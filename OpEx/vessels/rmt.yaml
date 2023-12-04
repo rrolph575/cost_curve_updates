@@ -1,0 +1,25 @@
+name: Remote Reset
+equipment_rate: 0
+capability: RMT
+speed: 1  # ensures this doesn't fail validation
+strategy: scheduled
+max_windspeed_transport: 99
+max_windspeed_repair: 99
+max_waveheight_transport: 99
+max_waveheight_repair: 99
+onsite: true
+mobilization_cost: 0
+mobilization_days: 0
+start_month: 1
+start_day: 1
+end_month: 12
+end_day: 31
+start_year: 2002
+end_year: 2022
+crew_transfer_time: 0
+n_crews: 1
+crew:
+  day_rate: 0
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0

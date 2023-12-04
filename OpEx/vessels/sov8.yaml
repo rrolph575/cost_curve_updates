@@ -1,0 +1,28 @@
+name: SOV
+equipment_rate: 30000
+capability: CTV
+speed: 37.04 # 37 kph = 20 knots
+strategy: scheduled
+max_windspeed_transport: 16
+max_windspeed_repair: 16
+max_waveheight_transport: 4
+max_waveheight_repair: 4
+onsite: False
+mobilization_cost: 0
+mobilization_days: 0
+port_distance: 5
+workday_start: 6
+workday_end: 18
+start_month: 5
+start_day: 28
+end_month: 6
+end_day: 10
+start_year: 2017
+end_year: 2022
+crew_transfer_time: 0.25
+n_crews: 1
+crew:
+  day_rate: 0  # crew comes with vessel
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0
