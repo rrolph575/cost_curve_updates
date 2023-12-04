@@ -1,0 +1,23 @@
+# Site + Plant Parameters
+turbine: 15MW_generic
+plant:
+  num_turbines: 67
+  #capacity: 1000
+site:
+  depth: 160
+  distance: 120
+  distance_to_landfall: 93
+# Vessels
+export_cable_install_vessel: example_cable_lay_vessel
+oss_install_vessel: floating_heavy_lift_vessel
+# Module Specific
+export_system_design:
+  cables: XLPE_1000m_220kV_dynamic
+  percent_added_length: 0.0
+substation_design:
+  floating_oss: True
+design_phases:
+- ElectricalDesign # New electrical design module includes export cable, offshore substation, and onshore substation design
+install_phases:
+  ExportCableInstallation: 0
+
