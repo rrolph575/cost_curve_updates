@@ -1,0 +1,22 @@
+# Values output in 2015 USD (in agreement with ORCA)
+# Cost curves derived with ORBIT for 600 MW plant, 
+# 7.2m/s mean wind speed (not accounting for wind shear since on the low end),
+# water depths from 5m-60m,
+# turbines used: 8MW from COE Review, 12, 15, 18 MW from 2021 ATB.
+
+monopile_capex_12MW:
+  (depth * 999 + 999) 
+transition_piece_capex_12MW:
+  (depth * 999 + 999) 
+monopile_capex_15MW:
+  (depth * 999 + 999) 
+transition_piece_capex_15MW:
+  (depth * 999 + 999)
+monopile_capex_17MWlowSP:
+  (depth * 999 + 999)
+transition_piece_capex_17MWlowSP:
+  (depth * 999 + 999)
+monopile_capex_20MW:
+  (depth * 999 + 999)
+transition_piece_capex_20MW:
+  (depth * 999 + 999)
