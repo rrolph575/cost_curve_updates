@@ -1,0 +1,21 @@
+
+the capacity of the 420 kV HVAC cable is 1069 MW.  the crossing point for 60 km was for the 220 kV cable (315 MW capacity).
+
+the substation capacity is 1200 MW.
+
+we need to make sure that the substation capacity exceeds the capacity of the cable.
+
+the substation needs to be able to handle the capacity of one cable.
+
+it does not make sense to have multiple substations per one cable. ORBIT does not have a check for this so you have to adjust the carrying capacity to be higher than any cable carrying capacity you use for the project.
+
+
+- for HVDC, the number of substations is different. for DC, you build in sets of 2.  for DC you need big components so you cant put multiple dc circuits (more than two cables) onto one substation.
+
+so if you have 2 cables, then you need one substation
+if you have 4 cables then you need two substations.   
+
+the carrying capacity of the HVDC is 2000 MW.
+
+we need to increase the HVAC substation cost because:
+	The HVAC substation costs are designed for the smaller capacity cables.  So we would logically assume that the larger carrying capacity substation would need a more expensive (bigger) substation.  So we need to multiply the substation cost by 1069/315 which is about 3
