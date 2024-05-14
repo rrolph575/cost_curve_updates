@@ -9,7 +9,7 @@ plant:
   row_spacing: 7
   substation_distance: 1
   turbine_spacing: 7
-  capacity: 1000
+  capacity: 2000
 port:
   monthly_rate: 2000000.0
   sub_assembly_lines: 1

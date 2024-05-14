@@ -1,16 +1,13 @@
 """Run parametrics and fit cost curves."""
 
-
-####### Make sure you run this using the electrical-refractor branch of ORBIT
-
-__author__ = "Matt Shields, modified by Becca Fuchs"
+__author__ = "Matt Shields"
 __copyright__ = "Copyright 2023, National Renewable Energy Laboratory"
 __maintainer__ = "Matt Shields"
 __email__ = "matt.shields@nrel.gov"
 
 import sys
-#sys.path.insert(0, '/Users/sbredenk/Repos/ORBIT')
-#import sys
+sys.path.insert(0, '/Users/sbredenk/Repos/ORBIT')
+import sys
 import pprint
 import numpy as np
 import pandas as pd
@@ -62,8 +59,8 @@ if __name__ == '__main__':
 #     weather.to_pickle('output/weather_' + custom_config[8:-5] + '.pkl')
     
     # Set up Parametric Manager runs
-    distance_range = np.arange(10,800,10)
-    cable_range = ['XLPE_1000m_220kV_dynamic', 'HVDC_2500mm_525kV'] # 'XLPE_1000m_220kV_dynamic'
+    distance_range = np.arange(10,400,10)
+    cable_range = ['XLPE_1000m_220kV_dynamic', 'HVDC_2000mm_320kV_dynamic'] # 'XLPE_1000m_220kV_dynamic'
     parameters = {
             'export_system_design.cables': cable_range,
             'site.distance_to_landfall': distance_range
@@ -86,15 +83,13 @@ if __name__ == '__main__':
     # Append total costs and extract each cable type
     
     dist = np.concatenate([distance_range, distance_range])
-    oss_install_dc = 64 * np.ones(distance_range.shape[0])
-    oss_install_ac = 3 * np.ones(distance_range.shape[0])
-    cable_install_dc = 1.6 / 1.61 * np.ones(distance_range.shape[0])
-    cable_install_ac = 0.609* 3 * np.ones(distance_range.shape[0])
+    oss_install_dc = 64 * np.ones(39)
+    oss_install_ac = 3 * np.ones(39)
+    cable_install_dc = 1.6 / 1.61 * np.ones(39)
+    cable_install_ac = 0.609* 3 * np.ones(39)
     
     oss_install = np.concatenate([oss_install_ac, oss_install_dc])
     cable_install = np.concatenate([cable_install_ac, cable_install_dc])
-    
-    print(parametric.results['oss_cost'][0])
     
     parametric.results['total_cost'] = parametric.results['cable_cost'] + cable_install * dist + (parametric.results['oss_cost'] + oss_install) * parametric.results['num_substations']
     
@@ -107,25 +102,9 @@ if __name__ == '__main__':
     for c in cable_range:
         l = 'ORBIT data for ' + str(c)
         cable_results[c] = parametric.results.loc[parametric.results['export_system_design.cables'] == c]['total_cost'].values * 1e6 / (config['plant']['capacity'] * 1000)
-    
-    
-    # Print equations for HVAC and HVDC separately
-    poly_order = 3
-    bestfit = np.polyfit(distance_range, cable_results[cable_range[0]], poly_order)
-    f = np.poly1d(bestfit)
-    print('Equation for HVAC 220 kV: ', f)
-    
-    poly_order = 3
-    bestfit = np.polyfit(distance_range, cable_results[cable_range[1]], poly_order)
-    f = np.poly1d(bestfit)
-    print('Equation for HVDC 525 kV: ', f)
-    
-    # HVAC uneconomical at least past 400 k (which is around index 40), so putting placeholders of NaN so values to not appear on plot and skew scale.
-    cable_results[cable_range[0]][40:] = np.nan
-    
+        
     ax.plot(distance_range, cable_results[cable_range[0]], 'x', label = 'ORBIT results for 220 kV HVAC system')
-    
-    ax.plot(distance_range, cable_results[cable_range[1]], '.', label = 'ORBIT results for 525 kV HVDC system')
+    ax.plot(distance_range, cable_results[cable_range[1]], '.', label = 'ORBIT results for 320 kV HVDC system')
         
     # Find crossover point and plot single curve
     cable_comp = (cable_results[cable_range[0]] < cable_results[cable_range[1]])
@@ -143,7 +122,7 @@ if __name__ == '__main__':
     f = np.poly1d(bestfit)
     x = np.linspace(distance_range[0], distance_range[-1], 50)
     y = f(x)
-    print('Combined cost curve', f)
+    print(f)
     
     ax.plot(x, y, '--', label='Cost curve')
     
@@ -166,12 +145,28 @@ if __name__ == '__main__':
 #     ax.plot(x, DNV_HVDC, label='DNV (HVDC monopole)')
     
     ax.legend()
-    ax.set_xlabel('Export cable length (km)')
+    ax.set_xlabel('Distance from landfall (km)')
     ax.set_ylabel('Export system cost, ($/kW)')
     ax.get_yaxis().set_major_formatter(mpl.ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
 
     plt.savefig('output/export_cable_new.png')
     
+    
+    
+    # pp.pprint(parametric.results.head())
+    
+    # cable_vec = np.zeros((40,20))
+    # oss_vec = np.zeros((40,20))
+    # total_vec = np.zeros((40,20))
+    # num2 = int(len(cable_vec) / 2)
+    # print(num2)
+    # for i in np.arange(20):
+        # for j in np.arange(40):
+            # index = 20 * j + i 
+            # cable_vec[j,i] = parametric.results.cable_cost[index]
+            # oss_vec[j,i] = parametric.results.oss_cost[index] * parametric.results.num_substations[index]
+            # total_vec[j,i] = parametric.results.cable_cost[index] + parametric.results.oss_cost[index]
 
-
+    # ind = 18
+    
     

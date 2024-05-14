@@ -28,26 +28,23 @@ if 'DATA_LIBRARY' in os.environ:
 
 # set relative paths (alternatively, set absolute paths)
 custom_library = "library"
-#custom_config  = 'configs/base_config.yaml'
 custom_config  = 'configs/base_config_2GW.yaml'
 # custom_weather = "data/weather/swh_ws100m_maine_2010_thru_2022.csv"
 
-inflation_rate = 1.15 # increase by 15% from 2021 to 2024 USD
-risk_factor = 1.08 # increase by 8% (from AOWTS)
 
 if __name__ == '__main__':
     # Point ORBIT to the custom data libraries in the anlaysis repo
     # initialize_library(custom_library)
     # Load in the input configuration YAML
     
-    # Point ORBIT to the custom data libraries in the analysis repo
+    # Point ORBIT to the custom data libraries in the anlaysis repo
     initialize_library(custom_library)
     
     config = load_config(custom_config)
 
     # Print out the required information for input config
     phases = ['ArraySystemDesign',
-                'ElectricalDesign', # Changed from ElectricalDesign
+                'ElectricalDesign',
                 'SemiSubmersibleDesign',
                 #'SemiTautMooringSystemDesign',
                 'MooringSystemDesign',
@@ -56,8 +53,8 @@ if __name__ == '__main__':
                 'MooringSystemInstallation',
                 'FloatingSubstationInstallation',
                 'MooredSubInstallation']
-    expected_config = ProjectManager.compile_input_dict(phases)
-    #pp = pprint.PrettyPrinter(indent=4)
+    #expected_config = ProjectManager.compile_input_dict(phases)
+    pp = pprint.PrettyPrinter(indent=4)
     #pp.pprint(expected_config)
 
     # Initialize and run project
@@ -65,9 +62,8 @@ if __name__ == '__main__':
 #     weather.to_pickle('output/weather_' + custom_config[8:-5] + '.pkl')
     
     # Set up Parametric Manager runs
-    distance_range = np.arange(10,400,10)
-    cable_range = ['XLPE_2500mm_420kV_dynamic', 'HVDC_2500mm_525kV_dynamic', 'XLPE_1000m_220kV_dynamic'] 
-    #cable_range = ['HVDC_2500mm_525kV_dynamic']
+    distance_range = np.arange(10,800,10)
+    cable_range = ['XLPE_1000m_220kV_dynamic', 'HVDC_2500mm_525kV'] # 'XLPE_1000m_220kV_dynamic'
     parameters = {
             'export_system_design.cables': cable_range,
             'site.distance_to_landfall': distance_range
@@ -75,42 +71,34 @@ if __name__ == '__main__':
         
     results = {
             'num_cables': lambda run: run.num_cables,
-            'cable_cost': lambda run: run.total_cable_cost * 1e-6 * inflation_rate*risk_factor,
-            'oss_cost': lambda run: run.total_substation_cost * 1e-6*inflation_rate*risk_factor,
+            'cable_cost': lambda run: run.total_cable_cost * 1e-6,
+            'oss_cost': lambda run: run.total_substation_cost * 1e-6,
             'num_substations': lambda run: run.num_substations,
-            'onshore_cost': lambda run: run.onshore_cost * 1e-6* inflation_rate*risk_factor,
-            'cable_length': lambda run: run.total_cable_length_by_type 
             #'cable_install': lambda run: run.capex_breakdown['Export System Installation'],
             #'oss_install': lambda run: run.capex_breakdown['Offshore Substation Installation'],
+            'export_system': lambda run: run.cables
     }
     
     # Run batch
-    parametric = ParametricManager(config, parameters, results, module=ElectricalDesign, product=True) 
+    parametric = ParametricManager(config, parameters, results, module=ElectricalDesign, product=True)
     parametric.run()
     
     
     # Append total costs and extract each cable type
     
-    dist = np.concatenate([distance_range, distance_range, distance_range])
-    cable_install_dc = 2.7 / 1.61 /2 * np.ones(distance_range.shape[0]) * inflation_rate*risk_factor # 2.7 $M/mi is the install cost per cable (not pair) of 525 kV static HVDC cable.  1.61 mi/km is the unit conversion factor. divided by 2 to get cost per cable not per pair.
-    cable_install_ac = 1.3 * 2.25 / 1.61 * np.ones(distance_range.shape[0]) * inflation_rate*risk_factor # install cost per km ($/km). Explanation: 1.3 is $M/mile (TRC from Atlantic project), 1.61 mi/km = $/km; 2.25 is the scaling factor from 220 kV to 420 kV HVAC from Xiang et al. (2016)
-    cable_install_ac_220 = 1.3 / 1.61 * np.ones(distance_range.shape[0]) * inflation_rate*risk_factor # install cost per km ($/km). Explanation: 1.3 is $M/mile (TRC from Atlantic project), 1.61 mi/km = $/km; 2.25 is the scaling factor from 220 kV to 420 kV HVAC from Xiang et al. (2016)
+    dist = np.concatenate([distance_range, distance_range])
+    oss_install_dc = 64 * np.ones(distance_range.shape[0])
+    oss_install_ac = 3 * np.ones(distance_range.shape[0])
+    cable_install_dc = 1.6 / 1.61 * np.ones(distance_range.shape[0])
+    cable_install_ac = 0.609* 3 * np.ones(distance_range.shape[0])
     
-    #oss_install = np.concatenate([oss_install_ac, oss_install_dc])
-    cable_install = np.concatenate([cable_install_ac, cable_install_dc, cable_install_ac_220])
+    oss_install = np.concatenate([oss_install_ac, oss_install_dc])
+    cable_install = np.concatenate([cable_install_ac, cable_install_dc])
     
-    print('The cost of one OSS substation at selected index: ' + str(parametric.results['oss_cost'][0]*1.3)) # index 9 is 100 km.
-
-    parametric.results['total_cost'] = parametric.results['cable_cost'] + cable_install * dist * parametric.results['num_cables'] + (parametric.results['oss_cost'] * 1.3) * parametric.results['num_substations'] + parametric.results['onshore_cost'] # 1.3 multiplier for installation, install rate of +%30 frmm DNV
-    
-    # parametric.results['export_system_design.cables'].unique()
-    # Out[6]: 
-    # array(['XLPE_2500mm_420kV_dynamic', 'HVDC_2500mm_525kV_dynamic',
-    #        'XLPE_1000m_220kV_dynamic'], dtype=object)
-    
+    parametric.results['total_cost'] = parametric.results['cable_cost'] + cable_install * dist + (parametric.results['oss_cost'] + oss_install) * parametric.results['num_substations']
     
 
-    #pp.pprint(parametric.results)
+    pp.pprint(parametric.results)
     
     fig, ax = plt.subplots()
     
@@ -124,51 +112,61 @@ if __name__ == '__main__':
     poly_order = 3
     bestfit = np.polyfit(distance_range, cable_results[cable_range[0]], poly_order)
     f = np.poly1d(bestfit)
-    print('Equation for HVAC 420 kV: ', f)
+    print('Equation for HVAC 220 kV: ', f)
     
     poly_order = 3
     bestfit = np.polyfit(distance_range, cable_results[cable_range[1]], poly_order)
     f = np.poly1d(bestfit)
     print('Equation for HVDC 525 kV: ', f)
     
-    poly_order = 3
-    bestfit = np.polyfit(distance_range, cable_results[cable_range[2]], poly_order)
-    f = np.poly1d(bestfit)
-    print('Equation for HVAC 220 kV: ', f)
-    
     # HVAC uneconomical at least past 400 k (which is around index 40), so putting placeholders of NaN so values to not appear on plot and skew scale.
     cable_results[cable_range[0]][40:] = np.nan
-       
+    
+    ax.plot(distance_range, cable_results[cable_range[0]], 'x', label = 'ORBIT results for 220 kV HVAC system')
+    
     ax.plot(distance_range, cable_results[cable_range[1]], '.', label = 'ORBIT results for 525 kV HVDC system')
-    
-    # Put NaNs for HVAC cables past 70 km.
-    cable_420_to_plot = cable_results[cable_range[0]]
-    cable_420_to_plot[10:] = np.nan
-    ax.plot(distance_range, cable_420_to_plot, 'x', label = 'ORBIT results for 420 kV HVAC system')
-    
-    cable_220_to_plot = cable_results[cable_range[2]] 
-    cable_220_to_plot[10:] = np.nan
-    ax.plot(distance_range, cable_220_to_plot, '.', label = 'ORBIT results for 220 kV HVAC system')
-        
         
     # Find crossover point and plot single curve
     cable_comp = (cable_results[cable_range[0]] < cable_results[cable_range[1]])
     crossover_ind = [i for i, x in enumerate(cable_comp) if not x][0]
     print(crossover_ind)
+        
+    least_cost = np.append(cable_results[cable_range[0]][0:crossover_ind], cable_results[cable_range[1]][crossover_ind:])
     
-    print('HVDC_2500mm_525kV_dynamic')
-    print(parametric.results.loc[parametric.results['export_system_design.cables']=='HVDC_2500mm_525kV_dynamic'].cable_cost)
+#     ax.plot(distance_range,least_cost,'--', label='Least cost cable')
     
-    print('price per cable $/kW')
-    #print('XLPE_2500mm_420kV_dynamic')
-    #print(parametric.results.loc[parametric.results['export_system_design.cables']=='XLPE_2500mm_420kV_dynamic'].cable_cost)
- 
+    # Create cost curve
+    poly_order = 3
+    bestfit = np.polyfit(distance_range, least_cost, poly_order)
+    
+    f = np.poly1d(bestfit)
+    x = np.linspace(distance_range[0], distance_range[-1], 50)
+    y = f(x)
+    print('Combined cost curve', f)
+    
+    ax.plot(x, y, '--', label='Cost curve')
+    
+    # Include old ORCA cost curve
+    orca_float_export = 0.75 * (0.0000000003 * x ** 5 -
+          0.0000004450 * x ** 4 +
+          0.0002307800 * x ** 3 -
+          0.0590666309 * x ** 2 +
+          9.6855829573 * x + 83.12)
+    
+#     ax.plot(x, orca_float_export, ':', label='ORCA cost equation')
+    
+    
+    # Add DNV data
+    
+    DNV_HVDC = 533 + 2.63 * x
+    DNV_HVAC = 235 + 3 * 2.03 * x
+    
+#     ax.plot(x, DNV_HVAC, label='DNV (HVAC)')
+#     ax.plot(x, DNV_HVDC, label='DNV (HVDC monopole)')
+    
     ax.legend()
     ax.set_xlabel('Export cable length (km)')
     ax.set_ylabel('Export system cost, ($/kW)')
-    ax.set_ylim(ymin=0)
-    ax.set_xlim(xmin=10)
-    plt.margins(x=10)
     ax.get_yaxis().set_major_formatter(mpl.ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
 
     plt.savefig('output/export_cable_new.png')
